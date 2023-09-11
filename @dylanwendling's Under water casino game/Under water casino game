@@ -1,0 +1,966 @@
+#include <iostream>
+#include <string>
+#include <vector>  
+#include <cctype>  
+ 
+using namespace std;
+ 
+enum en_DIRS {NORTH, EAST, SOUTH, WEST};
+enum en_ROOMS {AQUACLOTHING, CASINO, CARPARK, LOBBY, RESTAURANT, CORRIDOR, STOREROOM, MERMAIDROOM, GARDEN, SUNKENSHIP, CAPTAINROOM, CROWS_NEST, DECK, CELLAR, GEMROOM, TRESSUREROOM, CRYSTALROOM, KINGSROOM, TURTLEPALACE, SHARKGROVE, SEADRAGON_LAIR};
+enum en_VERBS {GET, DROP, USE, OPEN, CLOSE, EXAMINE, INVENTORY, LOOK, SIT, TALK};
+// ADDED code.
+enum en_NOUNS {STORE_DOOR, MAGNET, METER, ROULETTE, MONEY, LIFEJACKET, GEM, CRYSTAL, DRAGONEGG, OLDTELESCOPE, CAPTAINHAT, ROPE, BONES, CHEST, THRONE, SEAWEED, MERMAID};
+ 
+const int NONE = -1;
+const int DIRS = 4;
+const int ROOMS = 21;
+const int VERBS = 10;
+ 
+// ADDED code. 
+const int NOUNS = 17; 
+
+bool debug = false;
+ 
+struct word {
+    string word;
+    int code;
+};
+ 
+struct room {
+    string description;
+    int exits_to_room[DIRS];
+};
+ 
+// ADDED code. 
+struct noun { 
+  string word; 
+  string description; 
+  int code; 
+  int location; 
+  bool can_carry; 
+}; 
+ 
+// -------------------------------------------------
+ 
+void set_rooms(room *rms)
+{
+  if(debug) cout << "starting set_rooms().\n";
+  
+    rms[AQUACLOTHING].description.assign("Aquadic clothing shop");
+    rms[AQUACLOTHING].exits_to_room[NORTH] = NONE;
+    rms[AQUACLOTHING].exits_to_room[EAST] = NONE;
+    rms[AQUACLOTHING].exits_to_room[SOUTH] = CARPARK;
+    rms[AQUACLOTHING].exits_to_room[WEST] = NONE;
+ 
+    rms[CASINO].description.assign("under water seeweed infested casino");
+    rms[CASINO].exits_to_room[NORTH] = NONE;
+    rms[CASINO].exits_to_room[EAST] = NONE;
+    rms[CASINO].exits_to_room[SOUTH] = LOBBY;
+    rms[CASINO].exits_to_room[WEST] = NONE;
+ 
+    rms[CARPARK].description.assign("under water cave, the current is pulling you, choose if you dare");
+    rms[CARPARK].exits_to_room[NORTH] = AQUACLOTHING;
+    rms[CARPARK].exits_to_room[EAST] = LOBBY;
+    rms[CARPARK].exits_to_room[SOUTH] = SHARKGROVE;
+    rms[CARPARK].exits_to_room[WEST] = SUNKENSHIP;
+ 
+    rms[LOBBY].description.assign("under water hotel lobby");
+    rms[LOBBY].exits_to_room[NORTH] = CASINO;
+    rms[LOBBY].exits_to_room[EAST] = RESTAURANT;
+    rms[LOBBY].exits_to_room[SOUTH] = CORRIDOR;
+    rms[LOBBY].exits_to_room[WEST] = CARPARK;
+ 
+    rms[RESTAURANT].description.assign("under water restaurant");
+    rms[RESTAURANT].exits_to_room[NORTH] = NONE;
+    rms[RESTAURANT].exits_to_room[EAST] = NONE;
+    rms[RESTAURANT].exits_to_room[SOUTH] = NONE;
+    rms[RESTAURANT].exits_to_room[WEST] = LOBBY;
+ 
+    rms[CORRIDOR].description.assign(" under water corridor");
+    rms[CORRIDOR].exits_to_room[NORTH] = LOBBY;
+    rms[CORRIDOR].exits_to_room[EAST] = STOREROOM;
+    rms[CORRIDOR].exits_to_room[SOUTH] = NONE;
+    rms[CORRIDOR].exits_to_room[WEST] = NONE;
+ 
+    rms[STOREROOM].description.assign("under water store room");
+    rms[STOREROOM].exits_to_room[NORTH] = NONE;
+    rms[STOREROOM].exits_to_room[EAST] = NONE;
+    rms[STOREROOM].exits_to_room[SOUTH] = NONE;
+    rms[STOREROOM].exits_to_room[WEST] = CORRIDOR;
+ 
+    rms[MERMAIDROOM].description.assign("Mermaid Room");
+    rms[MERMAIDROOM].exits_to_room[NORTH] = GARDEN;
+    rms[MERMAIDROOM].exits_to_room[EAST] = NONE;
+    rms[MERMAIDROOM].exits_to_room[SOUTH] = KINGSROOM;
+    rms[MERMAIDROOM].exits_to_room[WEST] = NONE;
+ 
+    rms[GARDEN].description.assign("tranquil under water garden");
+    rms[GARDEN].exits_to_room[NORTH] = SUNKENSHIP;
+    rms[GARDEN].exits_to_room[EAST] = SHARKGROVE;
+    rms[GARDEN].exits_to_room[SOUTH] = MERMAIDROOM;
+    rms[GARDEN].exits_to_room[WEST] = TURTLEPALACE;
+ 
+    rms[SUNKENSHIP].description.assign("Sunken ship");
+    rms[SUNKENSHIP].exits_to_room[NORTH] = NONE;
+    rms[SUNKENSHIP].exits_to_room[EAST] = CARPARK;
+    rms[SUNKENSHIP].exits_to_room[SOUTH] = GARDEN;
+    rms[SUNKENSHIP].exits_to_room[WEST] = DECK;
+    
+    rms[CAPTAINROOM].description.assign("captain's room that use to be a pirate! you feel a cold shiver down you spine while gazing into the room");
+    rms[CAPTAINROOM].exits_to_room[NORTH] = NONE;
+    rms[CAPTAINROOM].exits_to_room[EAST] = DECK;
+    rms[CAPTAINROOM].exits_to_room[SOUTH] = NONE;
+    rms[CAPTAINROOM].exits_to_room[WEST] = NONE;
+
+    rms[CROWS_NEST].description.assign("Crows nest, the top of the sunken ship, you think it might be a steap hight but you relize that you are still under water");
+    rms[CROWS_NEST].exits_to_room[NORTH] = NONE;
+    rms[CROWS_NEST].exits_to_room[EAST] = NONE;
+    rms[CROWS_NEST].exits_to_room[SOUTH] = DECK;
+    rms[CROWS_NEST].exits_to_room[WEST] = NONE;
+
+    rms[DECK].description.assign("suken ships deck, which makes you recall the time that you were sea sick and how slipery the wood was on you feet when walking on it, however you relize that neither of these thing apply here since your under the water");
+    rms[DECK].exits_to_room[NORTH] = CROWS_NEST;
+    rms[DECK].exits_to_room[EAST] = SUNKENSHIP;
+    rms[DECK].exits_to_room[SOUTH] = CELLAR;
+    rms[DECK].exits_to_room[WEST] = CAPTAINROOM;
+
+    rms[CELLAR].description.assign("cold dark cellar under some worn wooden bords, do you think it's abandoned? for you case let's hope so");
+    rms[CELLAR].exits_to_room[NORTH] = DECK;
+    rms[CELLAR].exits_to_room[EAST] = NONE;
+    rms[CELLAR].exits_to_room[SOUTH] = NONE;
+    rms[CELLAR].exits_to_room[WEST] = NONE;
+
+    rms[GEMROOM].description.assign("Gem room, with all the sparkling light it practicaly pulling you in");
+    rms[GEMROOM].exits_to_room[NORTH] = NONE;
+    rms[GEMROOM].exits_to_room[EAST] = NONE;
+    rms[GEMROOM].exits_to_room[SOUTH] = NONE;
+    rms[GEMROOM].exits_to_room[WEST] = KINGSROOM;
+
+    rms[TRESSUREROOM].description.assign("hidden tressure room, there might even be a tresure chest who knows?");
+    rms[TRESSUREROOM].exits_to_room[NORTH] = KINGSROOM;
+    rms[TRESSUREROOM].exits_to_room[EAST] = NONE;
+    rms[TRESSUREROOM].exits_to_room[SOUTH] = NONE;
+    rms[TRESSUREROOM].exits_to_room[WEST] = NONE;
+
+    rms[CRYSTALROOM].description.assign("crystal room, right next to a gem room who would have guessed? not me");
+    rms[CRYSTALROOM].exits_to_room[NORTH] = NONE;
+    rms[CRYSTALROOM].exits_to_room[EAST] = KINGSROOM;
+    rms[CRYSTALROOM].exits_to_room[SOUTH] = NONE;
+    rms[CRYSTALROOM].exits_to_room[WEST] = NONE;
+
+    rms[KINGSROOM].description.assign("kings room with a thorne in the middle, you think to you self could this be your destiny?");
+    rms[KINGSROOM].exits_to_room[NORTH] = MERMAIDROOM;
+    rms[KINGSROOM].exits_to_room[EAST] = GEMROOM;
+    rms[KINGSROOM].exits_to_room[SOUTH] = TRESSUREROOM;
+    rms[KINGSROOM].exits_to_room[WEST] = CRYSTALROOM;
+
+    rms[TURTLEPALACE].description.assign("palace where a bunch of sea turtles have made home in, would you want disterb their peace? I mean go right ahead I am sure their ok with ousiders");
+    rms[TURTLEPALACE].exits_to_room[NORTH] = NONE;
+    rms[TURTLEPALACE].exits_to_room[EAST] = GARDEN;
+    rms[TURTLEPALACE].exits_to_room[SOUTH] = NONE;
+    rms[TURTLEPALACE].exits_to_room[WEST] = NONE;
+
+    rms[SHARKGROVE].description.assign("grove that is infested with sharks, who would have thought of all places. well you could turn back now but some of them are eyeing you, might as well swim threw, nothig could go wrong..");
+    rms[SHARKGROVE].exits_to_room[NORTH] = CARPARK;
+    rms[SHARKGROVE].exits_to_room[EAST] = NONE;
+    rms[SHARKGROVE].exits_to_room[SOUTH] = SEADRAGON_LAIR;
+    rms[SHARKGROVE].exits_to_room[WEST] = GARDEN;
+
+    rms[SEADRAGON_LAIR].description.assign("sea dragon's lair which might not be the best idea since you just risk you life swimming threw a grove of sharks but who am I to tell you no");
+    rms[SEADRAGON_LAIR].exits_to_room[NORTH] = SHARKGROVE;
+    rms[SEADRAGON_LAIR].exits_to_room[EAST] = NONE;
+    rms[SEADRAGON_LAIR].exits_to_room[SOUTH] = NONE;
+    rms[SEADRAGON_LAIR].exits_to_room[WEST] = NONE; 
+}
+ 
+// -------------------------------------------------
+ 
+void set_directions(word *dir) {
+  if(debug) cout << "starting set_directions().\n";
+    dir[NORTH].code = NORTH;
+    dir[NORTH].word = "NORTH";
+    dir[EAST].code = EAST;
+    dir[EAST].word = "EAST";
+    dir[SOUTH].code = SOUTH;
+    dir[SOUTH].word = "SOUTH";
+    dir[WEST].code = WEST;
+    dir[WEST].word = "WEST";
+}
+ 
+// -------------------------------------------------
+ 
+void set_verbs(word *vbs) {
+  if(debug) cout << "starting set_verbs().\n";
+    // enum en_VERBS {GET, DROP, USE, OPEN, CLOSE, EXAMINE, INVENTORY, LOOK};
+    vbs[GET].code = GET;
+    vbs[GET].word = "GET";
+    vbs[SIT].code = SIT;
+    vbs[SIT].word = "SIT";
+    vbs[TALK].code = TALK;
+    vbs[TALK].word = "TALK";
+    vbs[DROP].code = DROP;
+    vbs[DROP].word = "DROP";
+    vbs[USE].code = USE;
+    vbs[USE].word = "USE";
+    vbs[OPEN].code = OPEN;
+    vbs[OPEN].word = "OPEN";
+    vbs[CLOSE].code = CLOSE;
+    vbs[CLOSE].word = "CLOSE";
+    vbs[EXAMINE].code = EXAMINE;
+    vbs[EXAMINE].word = "EXAMINE";
+    vbs[INVENTORY].code = INVENTORY;
+    vbs[INVENTORY].word = "INVENTORY";
+    vbs[LOOK].code = LOOK;
+    vbs[LOOK].word = "LOOK";
+    
+  
+}
+ 
+// -------------------------------------------------
+ 
+// ADDED code. 
+void set_nouns(noun *nns) { 
+  if(debug) cout << "starting set_nouns().\n";
+  // enum en_NOUNS {STORE_DOOR, MAGNET, METER, ROULETTE, MONEY, LIFEJACKET}; 
+  nns[STORE_DOOR].word = "DOOR";
+  nns[STORE_DOOR].code = STORE_DOOR; 
+  nns[STORE_DOOR].description = "a closed store room door"; 
+  nns[STORE_DOOR].can_carry = false;
+  nns[STORE_DOOR].location = CORRIDOR;
+  nns[MAGNET].word = "MAGNET";
+  nns[MAGNET].code = MAGNET; 
+  nns[MAGNET].description = "a magnet flotting in the glimering water"; 
+  nns[MAGNET].can_carry = true;
+  nns[MAGNET].location = LOBBY;
+  nns[METER].word = "METER";
+  nns[METER].code = METER; 
+  nns[METER].description = "a sunken parking meter filled with water"; 
+  nns[METER].can_carry = false;
+  nns[METER].location = CARPARK;
+  nns[ROULETTE].word = "ROULETTE";
+  nns[ROULETTE].code = ROULETTE; 
+  nns[ROULETTE].description = "a flotting roulette wheel in the water"; 
+  nns[ROULETTE].can_carry = false;
+  nns[ROULETTE].location = CASINO;
+  nns[MONEY].word = "MONEY";
+  nns[MONEY].code = MONEY; 
+  nns[MONEY].description = "some shriveled money drifting in the water"; 
+  nns[MONEY].can_carry = true;
+  nns[MONEY].location = CASINO;
+  nns[LIFEJACKET].word = "LIFEJACKET";
+  nns[LIFEJACKET].code = LIFEJACKET; 
+  nns[LIFEJACKET].description = "a life jacket ... under water? ya, I seen everthing"; 
+  nns[LIFEJACKET].can_carry = false;
+  nns[LIFEJACKET].location = AQUACLOTHING;
+
+  nns[GEM].word = "GEM";
+  nns[GEM].code = GEM; 
+  nns[GEM].description = "some gems dug into the floor of the cavern, I don't think they look etable yet you belly roars as you gaze apon them, mabye you should have stopped to eat before scuba diving"; 
+  nns[GEM].can_carry = false;
+  nns[GEM].location = GEMROOM;
+
+  nns[CRYSTAL].word = "CRYSTAL";
+  nns[CRYSTAL].code = CRYSTAL; 
+  nns[CRYSTAL].description = "the shear shine of the bight light is enough to blind you and maybe you should stop staring... hey! I said stop"; 
+  nns[CRYSTAL].can_carry = false;
+  nns[CRYSTAL].location = CRYSTALROOM;
+
+  nns[DRAGONEGG].word = "DRAGONEGG";
+  nns[DRAGONEGG].code = DRAGONEGG; 
+  nns[DRAGONEGG].description = "an egg of a dragon in layed on the floor, it would'nt lead to conflit at all if you take it right? is what you think to you self yet you already have you hands around it"; 
+  nns[DRAGONEGG].can_carry = false;
+  nns[DRAGONEGG].location = SEADRAGON_LAIR;
+
+  nns[OLDTELESCOPE].word = "OLDTELESCOPE";
+  nns[OLDTELESCOPE].code = OLDTELESCOPE; 
+  nns[OLDTELESCOPE].description = "an old telescope from the age of pirates maybe you can find you destiny of your adventure by looking threw it"; 
+  nns[OLDTELESCOPE].can_carry = false;
+  nns[OLDTELESCOPE].location = CROWS_NEST;
+
+  nns[CAPTAINHAT].word = "CAPTAINHAT";
+  nns[CAPTAINHAT].code = CAPTAINHAT; 
+  nns[CAPTAINHAT].description = "a captain's hat, might as well put it on"; 
+  nns[CAPTAINHAT].can_carry = false;
+  nns[CAPTAINHAT].location = CAPTAINROOM;
+
+  nns[ROPE].word = "ROPE";
+  nns[ROPE].code = ROPE; 
+  nns[ROPE].description = "some rope seems to fallen of the mast of the ship you could pick it up if you want nobody is stoping you"; 
+  nns[ROPE].can_carry = false;
+  nns[ROPE].location = DECK;
+
+  nns[BONES].word = "BONES";
+  nns[BONES].code = BONES; 
+  nns[BONES].description = "the bones of a fallen pirate in battle, definatly not creapy at all"; 
+  nns[BONES].can_carry = false;
+  nns[BONES].location = CELLAR;
+
+  nns[CHEST].word = "CHEST";
+  nns[CHEST].code = CHEST; 
+  nns[CHEST].description = "a chest of tressures on a platform in the middle of the room, we have'nt see this before. you should just go pick it up"; 
+  nns[CHEST].can_carry = false;
+  nns[CHEST].location = TRESSUREROOM;
+
+  nns[THRONE].word = "THRONE";
+  nns[THRONE].code = THRONE; 
+  nns[THRONE].description = "a throne in the middle of the room, might al well be yours you have earned it after making this adventure"; 
+  nns[THRONE].can_carry = false;
+  nns[THRONE].location = KINGSROOM;
+
+  nns[SEAWEED].word = "SEAWEED";
+  nns[SEAWEED].code = SEAWEED; 
+  nns[SEAWEED].description = "finally some food ... wait a minute this is just sea weed and I thought this was a 5 star restaurant"; 
+  nns[SEAWEED].can_carry = false;
+  nns[SEAWEED].location = RESTAURANT;
+
+  nns[MERMAID].word = "MERMAID";
+  nns[MERMAID].code = MERMAID; 
+  nns[MERMAID].description = "a Mermaid is gliding threw the room maybe you can talk to her"; 
+  nns[MERMAID].can_carry = false;
+  nns[MERMAID].location = MERMAIDROOM;
+}
+ 
+// -------------------------------------------------
+ 
+void section_command(string Cmd, string &wd1, string &wd2) {
+    if(debug) cout << "starting section_command().\n";
+  
+    string sub_str;
+    vector<string> words;
+    char search = ' ';
+    short i, j;
+ 
+    for(i = 0; i < Cmd.size(); i++) {
+        if(Cmd.at(i) != search) {
+            sub_str.insert(sub_str.end(), Cmd.at(i));
+        }
+        if(i == Cmd.size() - 1) {
+            words.push_back(sub_str);
+            sub_str.clear();
+        }
+        if(Cmd.at(i) == search) {
+            words.push_back(sub_str);
+            sub_str.clear();
+        }
+    }
+ 
+    for(i = words.size() - 1; i > 0; i--) {
+        if(words.at(i) == "") {
+            words.erase(words.begin() + i);
+        }
+    }
+ 
+    for(i = 0; i < words.size(); i++) {
+        for(j = 0; j < words.at(i).size(); j++) {
+            if(islower(words.at(i).at(j))) {
+                words.at(i).at(j) = toupper(words.at(i).at(j));
+            }
+        }
+    }
+    
+    if(words.size() == 0) {
+        cout << "No command given" << endl;
+    }
+    if(words.size() == 1) {
+        wd1 = words.at(0);
+    }
+    if(words.size() == 2) {
+        wd1 = words.at(0);
+        wd2 = words.at(1);
+    }
+    if(words.size() > 2) {
+        cout << "Command too long. Only type one or two words (direction or verb and noun)" << endl;
+    }
+}
+ 
+// -------------------------------------------------
+ 
+void look_around(int loc, room *rms, word *dir, noun *nns) {
+  if (debug) cout << "starting look aroung";
+    int i;
+    cout << "I am in a " << rms[loc].description << "." << endl;
+    
+    for(i = 0; i < DIRS; i++) {
+        if(rms[loc].exits_to_room[i] != NONE) {
+            cout << "There is an exit " << dir[i].word << " to a " << rms[rms[loc].exits_to_room[i]].description << "." << endl;
+        }
+    }
+ 
+    // ADDED code. 
+    // The look command should check which objects (nouns) are in the current room and report them to the player. 
+    for(i = 0; i < NOUNS; i++) { 
+      if(nns[i].location == loc) { 
+        cout << "I see " << nns[i].description << "." << endl; 
+      }
+    }
+}
+ 
+// -------------------------------------------------
+ 
+bool parser(int &loc, string wd1, string wd2, word *dir, word *vbs, room *rms, noun *nns) {
+ 
+    // ADDED code. 
+    // false is a closed door.
+    static bool door_state = false;
+ 
+    int i;
+    for(i = 0; i < DIRS; i++) {
+        if(wd1 == dir[i].word) {
+            if(rms[loc].exits_to_room[dir[i].code] != NONE) {
+                loc = rms[loc].exits_to_room[dir[i].code];
+                cout << "I am now in a " << rms[loc].description << "." << endl;
+                // ADDED code. 
+                // A special case for the corridor storeroom door. 
+                if(loc == STOREROOM || loc == CORRIDOR) { 
+                  nns[STORE_DOOR].location = loc; 
+                }
+                return true;
+            } else {
+                cout << "No exit that way." << endl;
+                return true;
+            }
+        }
+    }
+ 
+    // ADDED code. 
+    int NOUN_MATCH = NONE; 
+ 
+    // VERBS USED IN GAME: enum en_VERBS {GET, DROP, USE, OPEN, CLOSE, EXAMINE, INVENTORY, LOOK};
+    int VERB_ACTION = NONE;
+    
+    for(i = 0; i < VERBS; i++) {
+        if(wd1 == vbs[i].word) {
+            VERB_ACTION = vbs[i].code;
+            break;
+        }
+    }
+    
+    // ADDED code. 
+    if(wd2 != "") { 
+      for(i = 0; i < NOUNS; i++) { 
+        if(wd2 == nns[i].word) { 
+          NOUN_MATCH = nns[i].code;
+          break;
+        }
+      }
+    }
+ 
+    if(VERB_ACTION == NONE) {
+        cout << "No valid command entered." << endl;
+        return true;
+    }
+ 
+    if(VERB_ACTION == LOOK) {
+        look_around(loc, rms, dir, nns);
+        return true;
+    }
+ 
+    // ADDED code. 
+    // Actions for usage of VERB OPEN. 
+    if(VERB_ACTION == OPEN) {  
+        if(loc == CORRIDOR || loc == STOREROOM) { 
+            cout << "I have opened the door." << endl; 
+            return true;
+      } else { 
+        cout << "Opening that is not possible." << endl; 
+        return true; 
+      }
+    }
+
+    if(VERB_ACTION == CLOSE) {  
+        if(loc == CORRIDOR || loc == STOREROOM) { 
+            cout << "I have Closed the door." << endl; 
+            return true;
+      } else { 
+        cout << "Closeing that is not possible." << endl; 
+        return true; 
+      }
+    }
+
+  if(VERB_ACTION == EXAMINE) { 
+        if(loc == CORRIDOR || loc == STOREROOM) { 
+            cout << "there is a door in the store room it looks old and worn." << endl; 
+            return true; 
+      }
+    } 
+
+    if(VERB_ACTION == EXAMINE) { 
+        if(loc == GEMROOM) { 
+            cout << "it is a piece of mineral crystal which, in cut and polished form, is used to make jewelry or other adornments." << endl; 
+            return true;
+      }
+    }
+
+    if(VERB_ACTION == EXAMINE) { 
+        if(loc == CRYSTALROOM) { 
+            cout << " it is a solid material whose constituents are arranged in a highly ordered microscopic structure, forming a crystal lattice that extends in all directions. In addition, macroscopic single crystals are usually identifiable by their geometrical shape, consisting of flat faces with specific, characteristic orientations." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == EXAMINE) { 
+        if(loc == TRESSUREROOM) { 
+            cout << " a large box that is filled with gold, silver, jewels, etc. often used figuratively The house is a treasure chest filled with artifacts." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == EXAMINE) { 
+        if(loc == MERMAIDROOM) { 
+            cout << "a mythological creature that is half maiden and half fish or sea serpent." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == EXAMINE) { 
+        if(loc == KINGSROOM) { 
+            cout << "the seat upon which a person holding the title King, Queen, Emperor, or Empress sits in a nation using a monarchy political system, although there are a few exceptions." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == EXAMINE) { 
+        if(loc == SEADRAGON_LAIR) { 
+            cout << "Dragon eggs tended to be very large (around 12 to 18 inches) and needed a lot of heat from their mothers to hatch. Dragon mothers were very protective of their eggs." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == EXAMINE) { 
+        if(loc == RESTAURANT) { 
+            cout << "Seaweed species such as kelps provide essential nursery habitat for fisheries and other marine species and thus protect food sources." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == EXAMINE) { 
+        if(loc == CASINO) { 
+            cout << "the rullet wheel flotting In the game, a player may choose to place a bet on a single number, various groupings of numbers, the color red or black, whether the number is odd or even, or if the numbers are high or low. and the shriveld money on the table, it is basicly gone at this point maybe you should have grabbed it sooner." << endl; 
+            return true; 
+      }
+    }
+
+  if(VERB_ACTION == EXAMINE) { 
+        if(loc == AQUACLOTHING) { 
+            cout << "the simple reason for that it provides fantastic reliability and can save your life without any exaggeration." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == EXAMINE) { 
+        if(loc == LOBBY) { 
+            cout << "A magnet is a material or object that produces a magnetic field. This magnetic field is invisible but is responsible for the most notable property." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == EXAMINE) { 
+        if(loc == CARPARK) { 
+            cout << "a place to put tax or fee paid for some liberty or privilege of staying at the cave i guess." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == EXAMINE) { 
+        if(loc == CROWS_NEST) { 
+            cout << "A telescope is a device used to observe distant objects by their emission, absorption, or reflection of electromagnetic radiation. Originally meaning only an optical instrument using lenses, curved mirrors, or a combination of both to observe distant objects." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == EXAMINE) { 
+        if(loc == CAPTAINROOM) { 
+            cout << "wearing a bicorn hat worn the other way, with the pressed-up sides on the front and back of the hat, and a skull and cross bones." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == EXAMINE) { 
+        if(loc == DECK) { 
+            cout << "Ropes have tensile strength and so can be used for dragging and lifting. Rope is thicker and stronger than similarly constructed cord, string, and twine.." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == EXAMINE) { 
+        if(loc == CELLAR) { 
+            cout << "The human skeleton is the internal framework of the human body. It is composed of around 270 bones at birth – this total decreases to around 206 bones by adulthood after some bones get fused together, yet they are definatly not all there by what you can tell, which creaps you out." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == EXAMINE) { 
+        if(loc == SUNKENSHIP || loc == GARDEN || loc == TURTLEPALACE || loc == SHARKGROVE) { 
+            cout << "There is no Item to Examine." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == INVENTORY) { 
+        if(loc == GEMROOM) { 
+            cout << "your inventory in this room is gem." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == INVENTORY) { 
+        if(loc == CRYSTALROOM) { 
+            cout << "your inventory in this room is crystal." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == INVENTORY) { 
+        if(loc == TRESSUREROOM) { 
+            cout << "your inventory in this room is tressure." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == INVENTORY) { 
+        if(loc == SEADRAGON_LAIR) { 
+            cout << "your inventory in this room is Dragon egg." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == INVENTORY) { 
+        if(loc == RESTAURANT) { 
+            cout << "your inventory in this room is Sea Weed." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == INVENTORY) { 
+        if(loc == CASINO) { 
+            cout << "your inventory in this room is shriveld money." << endl; 
+            return true; 
+      }
+    }
+
+  if(VERB_ACTION == INVENTORY) { 
+        if(loc == AQUACLOTHING) { 
+            cout << "your inventory in this room is life jacket." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == INVENTORY) { 
+        if(loc == LOBBY) { 
+            cout << "your inventory in this room is magnet." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == INVENTORY) { 
+        if(loc == CROWS_NEST) { 
+            cout << "your inventory in this room is old teloscope." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == INVENTORY) { 
+        if(loc == CAPTAINROOM) { 
+            cout << "your inventory in this room is captain hat." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == INVENTORY) { 
+        if(loc == DECK) { 
+            cout << "your inventory in this room is rope." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == INVENTORY) { 
+        if(loc == CELLAR) { 
+            cout << "your inventory in this room is bones." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == INVENTORY) { 
+        if(loc == SUNKENSHIP || loc == CARPARK || loc == GARDEN || loc == TURTLEPALACE || loc == SHARKGROVE || loc == CORRIDOR || loc == STOREROOM) { 
+            cout << "There is no Items in you Inventory here." << endl; 
+            return true; 
+      }
+    }  
+
+   if(VERB_ACTION == USE) { 
+        if(loc == SUNKENSHIP || loc == CARPARK || loc == GARDEN || loc == TURTLEPALACE || loc == SHARKGROVE || loc == CORRIDOR || loc == STOREROOM) { 
+            cout << "There is no Item to use here." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == USE) { 
+        if( loc == AQUACLOTHING || loc == CASINO || loc== CARPARK || loc == LOBBY || loc == RESTAURANT || loc == SUNKENSHIP || loc == CAPTAINROOM || loc == CROWS_NEST || loc == DECK || loc == CELLAR || loc == GEMROOM || loc == TRESSUREROOM || loc == CRYSTALROOM || loc == KINGSROOM || loc == SEADRAGON_LAIR) { 
+            cout << "your Iteam has been used." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == DROP) { 
+        if(loc == SUNKENSHIP || loc == CARPARK || loc == GARDEN || loc == TURTLEPALACE || loc == SHARKGROVE || loc == CORRIDOR || loc == STOREROOM) { 
+            cout << "There is no Item to drop here." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == DROP) { 
+        if(loc == GEMROOM) { 
+            cout << "the item was removed in you Inventory." << endl; 
+            return true;
+    }
+      }
+
+    if(VERB_ACTION == DROP) { 
+        if(loc == CRYSTALROOM) { 
+            cout << "the item was removed in you Inventory." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == DROP) { 
+        if(loc == TRESSUREROOM) { 
+            cout << "the item was removed in you Inventory." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == DROP) { 
+        if(loc == SEADRAGON_LAIR) { 
+            cout << "the item was removed in you Inventory." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == DROP) { 
+        if(loc == RESTAURANT) { 
+            cout << "the item was removed in you Inventory." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == DROP) { 
+        if(loc == CASINO) { 
+            cout << "the item was removed in you Inventory." << endl; 
+            return true; 
+      }
+    }
+
+  if(VERB_ACTION == DROP) { 
+        if(loc == AQUACLOTHING) { 
+            cout << "the item was removed in you Inventory." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == DROP) { 
+        if(loc == LOBBY) { 
+            cout << "the item was removed in you Inventory." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == DROP) { 
+        if(loc == CROWS_NEST) { 
+            cout << "the item was removed in you Inventory." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == DROP) { 
+        if(loc == CAPTAINROOM) { 
+            cout << "the item was removed in you Inventory." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == DROP) { 
+        if(loc == DECK) { 
+            cout << "the item was removed in you Inventory." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == DROP) { 
+        if(loc == CELLAR) { 
+            cout << "the item was removed in you Inventory." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == GET) { 
+        if(loc == GEMROOM) { 
+            cout << "the item was placed in you Inventory." << endl; 
+            return true;
+    }
+      }
+
+    if(VERB_ACTION == GET) { 
+        if(loc == CRYSTALROOM) { 
+            cout << "the item was placed in you Inventory." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == GET) { 
+        if(loc == TRESSUREROOM) { 
+            cout << "the item was placed in you Inventory." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == GET) { 
+        if(loc == SEADRAGON_LAIR) { 
+            cout << "the item was placed in you Inventory." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == GET) { 
+        if(loc == RESTAURANT) { 
+            cout << "the item was placed in you Inventory." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == GET) { 
+        if(loc == CASINO) { 
+            cout << "the item was placed in you Inventory." << endl; 
+            return true; 
+      }
+    }
+
+  if(VERB_ACTION == GET) { 
+        if(loc == AQUACLOTHING) { 
+            cout << "the item was placed in you Inventory." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == GET) { 
+        if(loc == LOBBY) { 
+            cout << "the item was placed in you Inventory." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == GET) { 
+        if(loc == CROWS_NEST) { 
+            cout << "the item was placed in you Inventory." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == GET) { 
+        if(loc == CAPTAINROOM) { 
+            cout << "the item was placed in you Inventory." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == GET) { 
+        if(loc == DECK) { 
+            cout << "the item was placed in you Inventory." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == GET) { 
+        if(loc == CELLAR) { 
+            cout << "the item was placed in you Inventory." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == GET) { 
+        if(loc == SUNKENSHIP || loc == CARPARK || loc == GARDEN || loc == TURTLEPALACE || loc == SHARKGROVE || loc == CORRIDOR || loc == STOREROOM) { 
+            cout << "There is no Item to get here." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == SIT) { 
+        if(loc == KINGSROOM) { 
+            cout << "siting on the trone fills you with pashion to move on with you adventure." << endl;
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == SIT) { 
+        if(loc == SUNKENSHIP || loc == GARDEN || loc == TURTLEPALACE || loc == SHARKGROVE || loc == CORRIDOR || loc == STOREROOM || loc == AQUACLOTHING || loc == CASINO || loc== CARPARK || loc == LOBBY || loc == RESTAURANT || loc == SUNKENSHIP || loc == CAPTAINROOM || loc == CROWS_NEST || loc == DECK || loc == CELLAR || 
+ loc == GEMROOM || loc == TRESSUREROOM || loc == CRYSTALROOM || loc == MERMAIDROOM || loc == SEADRAGON_LAIR ) { 
+            cout << "There is no place to sit here." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == TALK) { 
+        if(loc == MERMAIDROOM) { 
+            cout << "you talk with the mermaid and she says: You got your style, now let it shine through, and remember no matter what, you got to be you." << endl; 
+            return true; 
+      }
+    }
+
+    if(VERB_ACTION == TALK) { 
+        if(loc == SUNKENSHIP || loc == GARDEN || loc == TURTLEPALACE || loc == SHARKGROVE || loc == CORRIDOR || loc == STOREROOM || loc == AQUACLOTHING || loc == CASINO || loc== CARPARK || loc == LOBBY || loc == RESTAURANT || loc == SUNKENSHIP || loc == CAPTAINROOM || loc == CROWS_NEST || loc == DECK || loc == CELLAR || 
+ loc == GEMROOM || loc == TRESSUREROOM || loc == CRYSTALROOM || loc == KINGSROOM || loc == SEADRAGON_LAIR ) { 
+            cout << "There is nobody to talk with here." << endl; 
+            return true; 
+      }
+    }
+    return false;
+}
+ 
+// -------------------------------------------------
+ 
+// -------------------------------------------------
+ 
+int main() {
+  
+    if(debug) cout << "starting main().\n";
+  
+    string command;
+    string word_1;
+    string word_2;
+ 
+    room rooms[ROOMS];
+    set_rooms(rooms);
+ 
+    word directions[DIRS];
+    set_directions(directions);
+ 
+    word verbs[VERBS];
+    set_verbs(verbs);
+ 
+    // ADDED code.
+    noun nouns[NOUNS];
+    set_nouns(nouns);
+ 
+    int location = CARPARK;
+
+    if(debug) cout << "setup complete. starting the main game loop.\n";
+ 
+    while(word_1 != "QUIT")
+    {
+        command.clear();
+        cout << "Your options are GET, DROP, USE, OPEN, CLOSE, EXAMINE, INVENTORY, LOOK, SIT, TALK. What shall I do?";
+        getline(cin, command);
+        cout << "Your raw command was " << command << endl;
+ 
+        word_1.clear();
+        word_2.clear();
+ 
+        section_command(command, word_1, word_2);
+ 
+        // ADDED code. 
+        if(word_1 != "QUIT")
+        {
+            parser(location, word_1, word_2, directions, verbs, rooms, nouns);
+        }
+    }
+    return 0;
+}
