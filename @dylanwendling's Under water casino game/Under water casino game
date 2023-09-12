@@ -943,11 +943,12 @@ int main() {
     int location = CARPARK;
 
     if(debug) cout << "setup complete. starting the main game loop.\n";
+    cout<< "Your Aventure starts by you getting on a train,\nAs you sit down you feel yourself starting to get sleepy.\nSuddenly you fall into a deep sleep, one you wake up there is a harsh darkness surrounding.\nYou figure that walking slowly to the the door is the best option.\nonce you open the door you are meet with the soft sounds of water hitting the slick concrete floor.\nThe train leaves and you are now stranded in a cold and dark cavern.\nThere is an opening that you start walking through.\nIts a dark and humid passage with water dipping from the celling.\nFinally, you reach a drop off that leads into a underwater passage that is drawing you in.\nLuckly you brought you suba gear along.\nThose marine biology classes finally payed off, as your professor always said\n-Take your scuba gear where ever you go and thats an order!-\nYou picture him yelling at you in the marine biology classroom.\nYou didn't paritcually hate him, you knew he ment well.\nYou were just in the class to discover the wonders of mermaids.\nYour bigist dream was to meet a mermaid in real life and hopefully become freinds.\nThe drop off that leads into a underwater passage of your dreams is in front of you.\nThus you decide to jump right in and explpore the area.";
  
     while(word_1 != "QUIT")
     {
         command.clear();
-        cout << "Your options are GET, DROP, USE, OPEN, CLOSE, EXAMINE, INVENTORY, LOOK, SIT, TALK. What shall I do?";
+        cout << "\nYour options are GET, DROP, USE, OPEN, CLOSE, EXAMINE, INVENTORY, LOOK, SIT, TALK,\nNorth, South, East, West.\nWhat shall I do?";
         getline(cin, command);
         cout << "Your raw command was " << command << endl;
  
