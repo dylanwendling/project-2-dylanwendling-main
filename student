@@ -1,0 +1,271 @@
+public class Student {
+    // Declare instance variables for student information and scores
+    private String firstName;
+    private String lastName;
+    private String[] arrayofstrings = new String[2]; // Array to store checkpoint scores for 2 projects
+    private double labScore;
+    private double ParticipationScore;
+    private double Exam1Score;
+    private double Exam2Score;
+    private double Exam3Score;
+    private double Exam4Score;
+    private double PracticalExamScore;
+
+    // Default constructor with no arguments
+    public Student() {
+        // Initialize the checkpoint score arrays with empty values
+        arrayofstrings[0] = "";
+        arrayofstrings[1] = "";
+    }
+
+    // Setter methods for student information
+    public void setFirstName(String newFirstName) {
+        firstName = newFirstName;
+    }
+
+    public void setLastName(String newLastName) {
+        lastName = newLastName;
+    }
+
+    // Setter methods for various scores
+    public void setLabScore(double newLabScore) {
+        labScore = newLabScore;
+    }
+
+    public void setParticipationScore(double newParticipationScore) {
+        ParticipationScore = newParticipationScore;
+    }
+
+    public void setExam1Score(double newExam1Score) {
+        Exam1Score = newExam1Score;
+    }
+
+    public void setExam2Score(double newExam2Score) {
+        Exam2Score = newExam2Score;
+    }
+
+    public void setExam3Score(double newExam3Score) {
+        Exam3Score = newExam3Score;
+    }
+
+    public void setExam4Score(double newExam4Score) {
+        Exam4Score = newExam4Score;
+    }
+
+    public void setPracticalExamScore(double newPracticalExamScore) {
+        PracticalExamScore = newPracticalExamScore;
+    }
+
+    // Getter methods for student information
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    // Getter methods for various scores
+    public double getLabScore() {
+        return labScore;
+    }
+
+    public double getParticipationScore() {
+        return ParticipationScore;
+    }
+
+    public double getExam1Score() {
+        return Exam1Score;
+    }
+
+    public double getExam2Score() {
+        return Exam2Score;
+    }
+
+    public double getExam3Score() {
+        return Exam3Score;
+    }
+
+    public double getExam4Score() {
+        return Exam4Score;
+    }
+
+    public double getPracticalExamScore() {
+        return PracticalExamScore;
+    }
+
+    /**
+     * Determines the overall exam score for CM111 in FA23.
+     * The lowest exam score is dropped, and the remaining 4 scores are averaged to the nearest point.
+     */
+    public double getExamAverage() {
+        // Find the minimum score among the five exams
+        double minScore = Math.min(Exam1Score, Math.min(Exam2Score, Math.min(Exam3Score, Math.min(Exam4Score, PracticalExamScore))));
+
+        // Calculate the sum of the four highest scores
+        double sum = Exam1Score + Exam2Score + Exam3Score + Exam4Score + PracticalExamScore - minScore;
+
+        // Calculate the average of the remaining four scores and round it to the nearest point
+        double average = Math.round(sum / 4.0);
+
+        return average; // TODO: (checkpoint 1) Implement this method
+    }
+
+    /**
+     * Determines an overall project score for CM111 in FA23.
+     * Each character in the string represents one of 6 checkpoints.
+     * The character P means pass (100% credit), L means late pass (90% credit),
+     * and N means no attempt (0% credit). Determines the average score to the nearest point.
+     */
+    public double getProjectScore(int projectNumber) {
+        if (projectNumber != 1 && projectNumber != 2) {
+            throw new IllegalArgumentException("Invalid project number. Must be 1 or 2.");
+        }
+
+        // Get the checkpoint scores for the specified project
+        String projectCheckpointScores = arrayofstrings[projectNumber-1];
+
+        // Initialize variables to keep track of the total score and the count of checkpoints
+        int totalScore = 0;
+        int checkpointCount = 0;
+
+        // Iterate through the characters in the projectCheckpointScores string
+        for (int i = 0; i < projectCheckpointScores.length(); i++) {
+            char checkpoint = projectCheckpointScores.charAt(i);
+
+            // Check the character and calculate the corresponding score
+            if (checkpoint == 'P') {
+                totalScore += 100; // 100% credit for passing
+            } else if (checkpoint == 'L') {
+                totalScore += 90;  // 90% credit for late pass
+            }
+            // 'N' represents no attempt, which contributes 0% credit
+
+            // Increment the checkpoint count
+            checkpointCount++;
+        }
+
+        // Calculate the average score to the nearest point
+        double averageScore = Math.round((double) totalScore / checkpointCount);
+
+        return averageScore;
+    }
+
+    /**
+     * Serializes the student object into a comma-separated string.
+     * The order of values: first name, last name, lab score, participation score,
+     * exam scores (1-4), practical exam score, project 1 scores, project 2 scores.
+     */
+    public String serialize() {
+        // Use the String.format method to create a formatted string
+        return String.format("%s,%s,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%s,%s",
+            firstName, lastName, labScore, ParticipationScore,
+            Exam1Score, Exam2Score, Exam3Score, Exam4Score, PracticalExamScore,
+            arrayofstrings[0], arrayofstrings[1]);
+    }
+
+    /**
+     * Deserializes the input string and sets the values in the student object.
+     * Assumes the input string is in the same format as the one produced by serialize.
+     */
+    public void deserialize(String data) {
+        // Use the split method to separate values using commas
+        String[] values = data.split(",");
+
+        // Set values to the corresponding instance variables
+        firstName = values[0];
+        lastName = values[1];
+        labScore = Double.parseDouble(values[2]);
+        ParticipationScore = Double.parseDouble(values[3]);
+        Exam1Score = Double.parseDouble(values[4]);
+        Exam2Score = Double.parseDouble(values[5]);
+        Exam3Score = Double.parseDouble(values[6]);
+        Exam4Score = Double.parseDouble(values[7]);
+        PracticalExamScore = Double.parseDouble(values[8]);
+        arrayofstrings[0] = values[9];
+        arrayofstrings[1] = values[10];
+    }
+
+    /**
+     * Computes the overall grade for a student based on the syllabus weights.
+     * Uses the previously implemented methods (getExamAverage and getProjectScore).
+     */
+    public double getOverallScore() {
+        // Define syllabus weights
+
+        double examWeight = 0.6;
+        double projectWeight = 0.15;
+        double labWeight = 0.15;
+        double participationWeight = 0.10;
+
+        // Calculate weighted scores
+        double examScore = getExamAverage();
+        double project1Score = getProjectScore(1);
+        double project2Score = getProjectScore(2);
+        double labScore = getLabScore(); // You need to implement getLabScore() method
+        double participationScore = getParticipationScore(); // You need to implement getParticipationScore() method
+
+        // Calculate overall score using weighted averages
+        double overallScore = examWeight * examScore
+            + projectWeight * ((project1Score + project2Score) / 2.0)
+            + labWeight * labScore
+            + participationWeight * participationScore;
+
+        // Round to the nearest point
+        double roundedOverallScore = Math.round(overallScore);
+
+        return roundedOverallScore;
+    }
+
+    // Method to record the project score based on the given project number and checkpointScores string
+    public void setProjectScore(int projectNumber, String projectScores) {
+        if (projectNumber < 1 || projectNumber > 2) {
+            throw new IllegalArgumentException("Invalid project number. Must be 1 or 2.");
+        }
+
+        arrayofstrings[projectNumber-1] = projectScores;
+    }
+
+    public static void main(String[] args) {
+        // Example usage
+        Student student = new Student();
+
+        // Set and display various scores
+        student.setFirstName("John");
+        student.setLastName("Doe");
+        student.setLabScore(60);
+        student.setParticipationScore(80);
+        student.setExam1Score(100);
+        student.setExam2Score(90);
+        student.setExam3Score(80);
+        student.setExam4Score(70);
+        student.setPracticalExamScore(60);
+        student.setProjectScore(1, "PLPPPL");
+        student.setProjectScore(2, "PPLLNN");
+
+        // Serialize and print the data
+        String serializedData = student.serialize();
+        System.out.println("Serialized Data: " + serializedData);
+
+        // Create a new student object and deserialize the data
+        Student newStudent = new Student();
+        newStudent.deserialize(serializedData);
+
+        // Display the deserialized data
+        System.out.println("Deserialized Data:");
+        System.out.println("First Name: " + newStudent.getFirstName());
+        System.out.println("Last Name: " + newStudent.getLastName());
+        System.out.println("Lab Score: " + newStudent.getLabScore());
+        System.out.println("Participation Score: " + newStudent.getParticipationScore());
+        System.out.println("Exam 1 Score: " + newStudent.getExam1Score());
+        System.out.println("Exam 2 Score: " + newStudent.getExam2Score());
+        System.out.println("Exam 3 Score: " + newStudent.getExam3Score());
+        System.out.println("Exam 4 Score: " + newStudent.getExam4Score());
+        System.out.println("Practical Exam Score: " + newStudent.getPracticalExamScore());
+        System.out.println("Project 1 Score: " + newStudent.getProjectScore(1));
+        System.out.println("Project 2 Score: " + newStudent.getProjectScore(2));
+
+        // Calculate and display the overall score
+        System.out.println("Overall Score: " + newStudent.getOverallScore());
+    }
+}
